@@ -47,7 +47,12 @@ const HomePage = () => {
     if (item) {
       cartDispatch({
         type: "add_cart",
-        item: { id, name: item.name, unitPrice: item.unitPrice, quantity: 1 }
+        item: {
+          id,
+          name: item.name ? item.name : "",
+          unitPrice: item.unitPrice ? item.unitPrice : 0,
+          quantity: 1
+        }
       });
     }
   };
