@@ -1,48 +1,62 @@
-import { Button, Card, Flex, Form, FormProps, Input, InputNumber, Select } from "antd";
-import React from "react";
-import Swal from "sweetalert2";
-import { useNavigate } from "react-router-dom";
-import axios from "@/utils/axios";
 import styles from "@/assets/scss/homepage.module.scss";
-import { dispatch, useSelector } from "@/store";
-import { addCart, updateCart, removeCart } from "@/store/slices/cartSlice";
 import ICart from "@/types/cart";
+import { Button, InputNumber } from "antd";
+import ldash from "lodash";
+import React from "react";
 interface IProduct {
   id: number;
-  name: string;
-  unitPrice: number;
-  quantity: number;
+  name?: string;
+  unitPrice?: number;
+  quantity?: number;
 }
+interface IPayload {
+  type: string;
+  item: IProduct;
+}
+const inventory: IProduct[] = [
+  { id: 1, name: "bacon", unitPrice: 10.99, quantity: 10 },
+  { id: 2, name: "eggs", unitPrice: 3.99, quantity: 11 },
+  { id: 3, name: "cheese", unitPrice: 6.99, quantity: 12 }
+];
+
+const cartReducer = (state: IProduct[], action: IPayload) => {
+  console.log("state = ", state);
+  switch (action.type) {
+    case "add_cart":
+      return [...state, action.item];
+    case "update_cart":
+      let draftState: IProduct[] = ldash.cloneDeep(state);
+      draftState.forEach((elmt) => {
+        if (elmt.id === action.item.id) {
+          elmt.quantity = action.item.quantity;
+        }
+      });
+      return draftState;
+    case "delete_cart":
+      let nextState: IProduct[] = state.filter((elmt) => {
+        return elmt.id !== action.item.id;
+      });
+      return nextState;
+    default:
+      return [...state];
+  }
+};
 const HomePage = () => {
-  const { cartData } = useSelector((state) => state.cart);
-  const inventory: IProduct[] = [
-    { id: 1, name: "bacon", unitPrice: 10.99, quantity: 10 },
-    { id: 2, name: "eggs", unitPrice: 3.99, quantity: 11 },
-    { id: 3, name: "cheese", unitPrice: 6.99, quantity: 12 }
-  ];
+  const [cartData, cartDispatch] = React.useReducer(cartReducer, []);
   const handleAddCart = (id: number) => () => {
     const item: IProduct | undefined = inventory.find((x) => x.id === id);
     if (item) {
-      dispatch(
-        addCart({
-          id: item.id,
-          name: item.name ? item.name : "",
-          unitPrice: item.unitPrice ? item.unitPrice : 0,
-          quantity: 1
-        })
-      );
+      cartDispatch({
+        type: "add_cart",
+        item: { id, name: item.name, unitPrice: item.unitPrice, quantity: 1 }
+      });
     }
   };
   const handleUpdateQuantity = (id: number) => (e: any) => {
-    dispatch(
-      updateCart({
-        id,
-        quantity: parseInt(e)
-      })
-    );
+    cartDispatch({ type: "update_cart", item: { id, quantity: parseInt(e) } });
   };
   const handleRemove = (id: number) => () => {
-    dispatch(removeCart({ id }));
+    cartDispatch({ type: "delete_cart", item: { id } });
   };
   return (
     <React.Fragment>
