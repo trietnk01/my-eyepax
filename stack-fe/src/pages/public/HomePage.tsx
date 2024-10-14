@@ -20,23 +20,22 @@ const inventory: IProduct[] = [
 ];
 
 const cartReducer = (state: IProduct[], action: IPayload) => {
-  console.log("state = ", state);
   switch (action.type) {
     case "add_cart":
       return [...state, action.item];
     case "update_cart":
-      let draftState: IProduct[] = ldash.cloneDeep(state);
-      draftState.forEach((elmt) => {
+      let stateDraft: IProduct[] = ldash.cloneDeep(state);
+      stateDraft.forEach((elmt) => {
         if (elmt.id === action.item.id) {
           elmt.quantity = action.item.quantity;
         }
       });
-      return draftState;
+      return stateDraft;
     case "delete_cart":
-      let nextState: IProduct[] = state.filter((elmt) => {
+      let stateFilter: IProduct[] = state.filter((elmt) => {
         return elmt.id !== action.item.id;
       });
-      return nextState;
+      return stateFilter;
     default:
       return [...state];
   }
